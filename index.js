@@ -1,3 +1,7 @@
+require("dotenv").config();
+const express = require("express");
+const app = express();
+
 const { default: mongoose } = require("mongoose");
 const puppeteer = require("puppeteer");
 const Snap = require("./models/snaps");
@@ -16,13 +20,13 @@ async function scrapeImagesAndVideos(influencer, userId) {
     // Extract image URLs
     const imageUrls = await page.$$eval(
       "img.StoryWebPlayer_media__LqV78",
-      (imgs) => imgs.map((img) => img.src)
+      (imgs) => imgs.map((img) => ({ type: "image", src: img.src }))
     );
 
     // Extract video URLs
     const videoUrls = await page.$$eval(
       "video.StoryWebPlayer_media__LqV78 source",
-      (sources) => sources.map((source) => source.src)
+      (sources) => sources.map((source) => ({ type: "video", src: source.src }))
     );
 
     return { imageUrls, videoUrls };
@@ -63,7 +67,26 @@ async function scrapeImagesAndVideos(influencer, userId) {
   }
 }
 
-cron.schedule("55 13 * * *", async () => {
+app.listen(5002, () => console.log("app listening on port 5002"));
+
+app.get("/add-user", async (req, res) => {
+  const user = await User.create({
+    userName: "hudeifa",
+    influencers: ["me_05514"],
+  });
+  res.send(user);
+});
+
+app.get("/fetch", async (req, res) => {
+  try {
+    const result = await Snap.find({});
+    res.send(result);
+  } catch (e) {
+    console.log(e);
+  }
+});
+
+cron.schedule("26 22 * * *", async () => {
   console.log("started cron job....");
   try {
     const users = await User.find({});

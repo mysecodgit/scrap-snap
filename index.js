@@ -79,14 +79,45 @@ app.get("/add-user", async (req, res) => {
 
 app.get("/fetch", async (req, res) => {
   try {
-    const result = await Snap.find({});
+    const result = await Snap.aggregate([
+      {
+        $unwind: "$urls",
+      },
+      {
+        $group: {
+          _id: {
+            influencerUsername: "$influencerUsername",
+            snapDate: "$snapDate",
+          },
+          urls: { $push: "$urls" },
+        },
+      },
+      {
+        $group: {
+          _id: "$_id.influencerUsername",
+          data: {
+            $push: {
+              date: "$_id.snapDate",
+              urls: "$urls",
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          influencerName: "$_id",
+          data: 1,
+        },
+      },
+    ]);
     res.send(result);
   } catch (e) {
     console.log(e);
   }
 });
 
-cron.schedule("26 22 * * *", async () => {
+cron.schedule("56 07 * * *", async () => {
   console.log("started cron job....");
   try {
     const users = await User.find({});

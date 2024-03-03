@@ -84,6 +84,11 @@ app.get("/fetch", async (req, res) => {
         $unwind: "$urls",
       },
       {
+        $sort: {
+          snapDate: -1,
+        },
+      },
+      {
         $group: {
           _id: {
             influencerUsername: "$influencerUsername",

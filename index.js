@@ -213,6 +213,8 @@ app.get("/fetch", async (req, res) => {
   }
 });
 
+const { exec } = require('child_process');
+
 app.get('/install-chrome', (req, res) => {
   const command = 'npx puppeteer browsers install chrome';
 

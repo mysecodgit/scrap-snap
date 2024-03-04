@@ -213,8 +213,7 @@ app.get("/fetch", async (req, res) => {
   }
 });
 
-cron.schedule("31 09 * * *", async () => {
-  console.log("started cron job....");
+app.get("/scrape", async (req, res) => {
   try {
     const users = await User.find({});
     const scrapeTasks = [];
@@ -230,3 +229,21 @@ cron.schedule("31 09 * * *", async () => {
     console.error("Error fetching users from MongoDB:", error);
   }
 });
+
+// cron.schedule("31 09 * * *", async () => {
+//   console.log("started cron job....");
+//   try {
+//     const users = await User.find({});
+//     const scrapeTasks = [];
+
+//     for (const user of users) {
+//       for (const influencer of user.influencers) {
+//         scrapeTasks.push(scrapeImagesAndVideos(influencer, user._id));
+//       }
+//     }
+
+//     await Promise.all(scrapeTasks);
+//   } catch (error) {
+//     console.error("Error fetching users from MongoDB:", error);
+//   }
+// });

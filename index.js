@@ -225,6 +225,7 @@ app.get("/scrape", async (req, res) => {
     }
 
     await Promise.all(scrapeTasks);
+    return res.send("finished");
   } catch (error) {
     console.error("Error fetching users from MongoDB:", error);
   }

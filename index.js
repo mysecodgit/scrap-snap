@@ -213,6 +213,18 @@ app.get("/fetch", async (req, res) => {
   }
 });
 
+app.get('/install-chrome', (req, res) => {
+  const command = 'npx puppeteer browsers install chrome';
+
+  exec(command, (error, stdout, stderr) => {
+    if (error) {
+      res.status(500).send(error.message);
+    } else {
+      res.send(stdout);
+    }
+  });
+});
+
 app.get("/scrape", async (req, res) => {
   try {
     const users = await User.find({});

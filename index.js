@@ -213,20 +213,6 @@ app.get("/fetch", async (req, res) => {
   }
 });
 
-const { exec } = require('child_process');
-
-app.get('/install-chrome', (req, res) => {
-  const command = 'npx puppeteer browsers install chrome';
-
-  exec(command, (error, stdout, stderr) => {
-    if (error) {
-      res.status(500).send(error.message);
-    } else {
-      res.send(stdout);
-    }
-  });
-});
-
 app.get("/scrape", async (req, res) => {
   try {
     const users = await User.find({});
@@ -245,20 +231,22 @@ app.get("/scrape", async (req, res) => {
   }
 });
 
-// cron.schedule("31 09 * * *", async () => {
-//   console.log("started cron job....");
-//   try {
-//     const users = await User.find({});
-//     const scrapeTasks = [];
+// scrapeImagesAndVideos("ccc.7c", "65e374ed6baf5965b7ec3054");
 
-//     for (const user of users) {
-//       for (const influencer of user.influencers) {
-//         scrapeTasks.push(scrapeImagesAndVideos(influencer, user._id));
-//       }
-//     }
+cron.schedule("00 13 * * *", async () => {
+  console.log("started cron job....");
+  try {
+    const users = await User.find({});
+    const scrapeTasks = [];
 
-//     await Promise.all(scrapeTasks);
-//   } catch (error) {
-//     console.error("Error fetching users from MongoDB:", error);
-//   }
-// });
+    for (const user of users) {
+      for (const influencer of user.influencers) {
+        scrapeTasks.push(scrapeImagesAndVideos(influencer, user._id));
+      }
+    }
+
+    await Promise.all(scrapeTasks);
+  } catch (error) {
+    console.error("Error fetching users from MongoDB:", error);
+  }
+});

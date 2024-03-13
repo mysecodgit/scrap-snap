@@ -1,6 +1,10 @@
 require("dotenv").config();
 const express = require("express");
 const app = express();
+const fs = require("fs");
+const cors = require('cors')
+
+app.use(cors())
 
 const { default: mongoose } = require("mongoose");
 const puppeteer = require("puppeteer");
@@ -231,9 +235,50 @@ app.get("/scrape", async (req, res) => {
   }
 });
 
-// scrapeImagesAndVideos("ccc.7c", "65e374ed6baf5965b7ec3054");
+app.get("/get-urls", async (req, res) => {
+  const result = await Snap.aggregate([
+    {
+      $match: {
+        influencerUsername: "baba-slam",
+        snapDate: new Date("2024-03-08T10:54:47.968+00:00"),
+      },
+    },
+    {
+      $project: {
+        videoUrls: {
+          $map: {
+            input: {
+              $filter: {
+                input: "$urls",
+                cond: { $eq: ["$$this.type", "video"] },
+              },
+            },
+            as: "url",
+            in: "$$url.src",
+          },
+        },
+      },
+    },
+  ]);
 
-cron.schedule("00 13 * * *", async () => {
+  // const videoUrls = result[0].videoUrls;
+
+  // fs.writeFile("myurls.txt", videoUrls.join("\n"), (err) => {
+  //   if (err) {
+  //     console.error("Error writing file:", err);
+  //   } else {
+  //     console.log(`Video URLs have been written to`);
+  //   }
+  // });
+
+  res.send(result[0]?.videoUrls || []);
+});
+
+// scrapeImagesAndVideos("ccc.7c", "65e374ed6baf5965b7ec3054");
+// scrapeImagesAndVideos("i3bz1", "65e374ed6baf5965b7ec3054");
+// scrapeImagesAndVideos("al7ejab", "65e374ed6baf5965b7ec3054");
+
+cron.schedule("09 11 * * *", async () => {
   console.log("started cron job....");
   try {
     const users = await User.find({});

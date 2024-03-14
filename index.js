@@ -172,44 +172,78 @@ app.get("/add-user", async (req, res) => {
   res.send(user);
 });
 
+// app.get("/fetch", async (req, res) => {
+//   try {
+//     const result = await Snap.aggregate([
+//       {
+//         $unwind: "$urls",
+//       },
+//       {
+//         $sort: {
+//           snapDate: -1,
+//         },
+//       },
+//       {
+//         $group: {
+//           _id: {
+//             influencerUsername: "$influencerUsername",
+//             snapDate: "$snapDate",
+//           },
+//           urls: { $push: "$urls" },
+//         },
+//       },
+//       {
+//         $group: {
+//           _id: "$_id.influencerUsername",
+//           data: {
+//             $push: {
+//               date: "$_id.snapDate",
+//               urls: "$urls",
+//             },
+//           },
+//         },
+//       },
+//       {
+//         $project: {
+//           _id: 0,
+//           influencerName: "$_id",
+//           data: 1,
+//         },
+//       },
+//     ]);
+//     res.send(result);
+//   } catch (e) {
+//     console.log(e);
+//   }
+// });
+
 app.get("/fetch", async (req, res) => {
   try {
     const result = await Snap.aggregate([
       {
-        $unwind: "$urls",
-      },
-      {
-        $sort: {
-          snapDate: -1,
-        },
+        $sort: { influencerUsername: 1, snapDate: -1 } // Sort by influencer name (ascending) and snapDate (descending)
       },
       {
         $group: {
-          _id: {
-            influencerUsername: "$influencerUsername",
-            snapDate: "$snapDate",
-          },
-          urls: { $push: "$urls" },
-        },
-      },
-      {
-        $group: {
-          _id: "$_id.influencerUsername",
+          _id: "$influencerUsername",
           data: {
             $push: {
-              date: "$_id.snapDate",
+              date: "$snapDate",
               urls: "$urls",
-            },
-          },
-        },
+            }
+          }
+        }
       },
       {
         $project: {
-          _id: 0,
           influencerName: "$_id",
           data: 1,
-        },
+          _id: 0
+        }
       },
+      {
+        $sort: { influencerName: -1 } // Sort the final result by influencer name (ascending)
+      }
     ]);
     res.send(result);
   } catch (e) {
@@ -278,7 +312,7 @@ app.get("/get-urls", async (req, res) => {
 // scrapeImagesAndVideos("i3bz1", "65e374ed6baf5965b7ec3054");
 // scrapeImagesAndVideos("al7ejab", "65e374ed6baf5965b7ec3054");
 
-cron.schedule("09 11 * * *", async () => {
+cron.schedule("59 13 * * *", async () => {
   console.log("started cron job....");
   try {
     const users = await User.find({});

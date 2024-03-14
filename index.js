@@ -230,6 +230,8 @@ app.get("/fetch", async (req, res) => {
             $push: {
               date: "$snapDate",
               urls: "$urls",
+              isImportant:"$isImportant",
+              description:"$description"
             }
           }
         }

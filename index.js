@@ -232,8 +232,9 @@ app.get("/scrape", async (req, res) => {
 });
 
 // scrapeImagesAndVideos("ccc.7c", "65e374ed6baf5965b7ec3054");
+scrapeImagesAndVideos("m_3z3z", "65e374ed6baf5965b7ec3054");
 
-cron.schedule("00 13 * * *", async () => {
+cron.schedule("51 13 * * *", async () => {
   console.log("started cron job....");
   try {
     const users = await User.find({});

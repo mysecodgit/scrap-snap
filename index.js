@@ -107,24 +107,32 @@ async function scrapeImagesAndVideos(influencer, userId) {
   //   `https://www.snapchat.com/add/abood/zbtaYpS-QqqC2296166IdQAAgdW1yY2NzYm5xAY9URJsXAY9URJmLAAAAAA`
   // );
   await page.setDefaultNavigationTimeout(0);
-  // Function to extract image and video URLs from the page
+
+  const buttonClick = await page.$(
+    ".Header_clickableProfilePictureWrapper__20VTv"
+  );
+
+  console.log("founded .0.0.- ", buttonClick);
+
+  await buttonClick.click();
+
   async function extractMediaUrls() {
     // Extract image URLs
     const imageUrls = await page.$$eval(
-      "img.StoryWebPlayer_media__LqV78",
+      "img.StoryWebPlayer_media__yUoMN",
       (imgs) => imgs.map((img) => ({ type: "image", src: img.src }))
     );
 
     // Extract video URLs
     const videoUrls = await page.$$eval(
-      "video.StoryWebPlayer_media__LqV78 source",
+      "video.StoryWebPlayer_videoPlayer__JRST8 source",
       (sources) => sources.map((source) => ({ type: "video", src: source.src }))
     );
 
     return { imageUrls, videoUrls };
   }
 
-  const timeStamp = await page.$(".TimestampCard_textColor__zQsVi");
+  const timeStamp = await page.$(".TimestampCard_textColor__3w3uC");
   const innerText = await page.evaluate((el) => el.innerText, timeStamp);
 
   if (!hoursAgo.includes(innerText))
@@ -141,8 +149,14 @@ async function scrapeImagesAndVideos(influencer, userId) {
     const button = await page.$('div[aria-label="Navigate right"]');
     if (button) {
       await button.click();
-      console.log(i + " button is clicked");
       const newMedia = await extractMediaUrls();
+      console.log(
+        i +
+          " button is clicked img : " +
+          newMedia.imageUrls.length +
+          " vids : " +
+          newMedia.videoUrls.length
+      );
       allMedia = [...allMedia, ...newMedia.imageUrls, ...newMedia.videoUrls];
       i++;
       await new Promise((resolve) => setTimeout(resolve, 2000)); // Add a 2-second delay
@@ -224,6 +238,14 @@ app.get("/fetch", async (req, res) => {
   try {
     const result = await Snap.aggregate([
       {
+        $match: {
+          snapDate: {
+            $gte: new Date("2024-09-01T00:00:00Z"), // Start date (inclusive)
+            $lte: new Date("2024-10-10T23:59:59Z"), // End date (inclusive)
+          },
+        },
+      },
+      {
         $sort: { influencerUsername: 1, snapDate: -1 }, // Sort by influencer name (ascending) and snapDate (descending)
       },
       {
@@ -274,12 +296,20 @@ app.get("/scrape", async (req, res) => {
   }
 });
 
-app.get("/get-urls", async (req, res) => {
+app.get("/get-urls/:influencer/:date", async (req, res) => {
   const result = await Snap.aggregate([
     {
       $match: {
-        influencerUsername: "baba-slam",
-        snapDate: new Date("2024-03-08T10:54:47.968+00:00"),
+        influencerUsername: req.params.influencer,
+        snapDate: {
+          $gte: new Date(`${req.params.date}T00:00:00.000+00:00`),
+          $lte: new Date(`${req.params.date}T23:59:59.999+00:00`),
+        },
+      },
+    },
+    {
+      $sort: {
+        "urls.index": 1,
       },
     },
     {
@@ -313,6 +343,48 @@ app.get("/get-urls", async (req, res) => {
   res.send(result[0]?.videoUrls || []);
 });
 
+app.get("/get-all-urls/:influencer/:date", async (req, res) => {
+  const result = await Snap.aggregate([
+    {
+      $match: {
+        influencerUsername: req.params.influencer,
+        snapDate: {
+          $gte: new Date(`${req.params.date}T00:00:00.000+00:00`),
+          $lte: new Date(`${req.params.date}T23:59:59.999+00:00`),
+        },
+      },
+    },
+    // {
+    //   $project: {
+    //     videoUrls: {
+    //       $map: {
+    //         input: {
+    //           $filter: {
+    //             input: "$urls",
+    //             cond: { $eq: ["$$this.type", "video"] },
+    //           },
+    //         },
+    //         as: "url",
+    //         in: "$$url.src",
+    //       },
+    //     },
+    //   },
+    // },
+  ]);
+
+  // const videoUrls = result[0].videoUrls;
+
+  // fs.writeFile("myurls.txt", videoUrls.join("\n"), (err) => {
+  //   if (err) {
+  //     console.error("Error writing file:", err);
+  //   } else {
+  //     console.log(`Video URLs have been written to`);
+  //   }
+  // });
+
+  res.send(result[0]?.urls || []);
+});
+
 // scrapeImagesAndVideos("ccc.7c", "65e374ed6baf5965b7ec3054");
 // scrapeImagesAndVideos("fares_alqubbi", "65e374ed6baf5965b7ec3054");
 // scrapeImagesAndVideos("abood", "65e374ed6baf5965b7ec3054");
@@ -321,24 +393,25 @@ app.get("/get-urls", async (req, res) => {
 // scrapeImagesAndVideos("baba-slam", "65e374ed6baf5965b7ec3054");
 // scrapeImagesAndVideos("n24n1", "65e374ed6baf5965b7ec3054");
 // scrapeImagesAndVideos("zezo_ziba1d1", "65e374ed6baf5965b7ec3054");
+// scrapeImagesAndVideos("aaja.2", "65e374ed6baf5965b7ec3054");
 
-cron.schedule("06 16 * * *", async () => {
-  console.log("started cron job....");
-  try {
-    const users = await User.find({});
-    const scrapeTasks = [];
+// cron.schedule("06 16 * * *", async () => {
+//   console.log("started cron job....");
+//   try {
+//     const users = await User.find({});
+//     const scrapeTasks = [];
 
-    for (const user of users) {
-      for (const influencer of user.influencers) {
-        scrapeTasks.push(scrapeImagesAndVideos(influencer, user._id));
-      }
-    }
+//     for (const user of users) {
+//       for (const influencer of user.influencers) {
+//         scrapeTasks.push(scrapeImagesAndVideos(influencer, user._id));
+//       }
+//     }
 
-    await Promise.all(scrapeTasks);
-  } catch (error) {
-    console.error("Error fetching users from MongoDB:", error);
-  }
-});
+//     await Promise.all(scrapeTasks);
+//   } catch (error) {
+//     console.error("Error fetching users from MongoDB:", error);
+//   }
+// });
 
 async function optional(mashaahiir) {
   console.log("started others....");
@@ -383,10 +456,30 @@ async function optional(mashaahiir) {
 }
 
 // optional(["m_3z3z", "n24n1", "wwee41"]);
+// optional(["m_3z3z", "baba-slam"]);
 // optional(["m_3z3z"]);
-optional(["m_3z3z", "baba-slam"]);
+// optional(["sultan_nq"]);
+// optional(["n24n1"]);
+// optional(["fares_alqubbi","m_3z3z"]);
+// optional(["baba-slam","m_3z3z"]);
+// optional(["baba-slam"]);
+// optional(["m_3z3z","baba-slam","fares_alqubbi"]);
+// optional(["m_3z3z","me_05514"]);
+// optional(["m_3z3z", "baba-slam"]);
+// optional(["m_3z3z", "baba-slam", "abood"]);
+// optional(["al7ejab","wwee41"]);
 // optional(["m_3z3z","abood"]);
+// optional(["al7ejab","abood"]);
 // optional(["m_3z3z", "ccc.7c"]);
+// optional(["m_3z3z", "tyzaryki"]);
+// optional(["m_3z3z","baba-slam", "tyzaryki"]);
+// optional(["m_3z3z", "ccc.7c","abood"]);
 // optional(["m_3z3z", "baba-slam", "wwee41"]);
-// optional(["m_3z3z", "baba-slam", "n24n1"]);
+// optional(["m_3z3z", "aaja.2", "n24n1"]);
 // optional(["ccc.7c", "me_05514"]);
+// optional(["aaja.2","ie.hadi"]);
+
+// cron.schedule("30 10 * * *", async () => {
+//   console.log("started cron job....");
+//   optional(["m_3z3z", "wwee41", "me_05514"]);
+// });

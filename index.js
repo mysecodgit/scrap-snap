@@ -240,8 +240,8 @@ app.get("/fetch", async (req, res) => {
       {
         $match: {
           snapDate: {
-            $gte: new Date("2024-09-01T00:00:00Z"), // Start date (inclusive)
-            $lte: new Date("2024-10-10T23:59:59Z"), // End date (inclusive)
+            $gte: new Date("2024-11-01T00:00:00Z"), // Start date (inclusive)
+            $lte: new Date("2024-11-30T23:59:59Z"), // End date (inclusive)
           },
         },
       },
@@ -458,9 +458,10 @@ async function optional(mashaahiir) {
 // optional(["m_3z3z", "n24n1", "wwee41"]);
 // optional(["m_3z3z", "baba-slam"]);
 // optional(["m_3z3z"]);
+// optional(["m_3z3z","mvq.11","aomar1"]);
 // optional(["sultan_nq"]);
 // optional(["n24n1"]);
-// optional(["fares_alqubbi","m_3z3z"]);
+// optional(["fares_alqubbi","baba-slam"]);
 // optional(["baba-slam","m_3z3z"]);
 // optional(["baba-slam"]);
 // optional(["m_3z3z","baba-slam","fares_alqubbi"]);
@@ -478,6 +479,7 @@ async function optional(mashaahiir) {
 // optional(["m_3z3z", "aaja.2", "n24n1"]);
 // optional(["ccc.7c", "me_05514"]);
 // optional(["aaja.2","ie.hadi"]);
+// optional(["m_3z3z","wwee41"]);
 
 // cron.schedule("30 10 * * *", async () => {
 //   console.log("started cron job....");

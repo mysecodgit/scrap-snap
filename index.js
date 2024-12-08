@@ -136,7 +136,7 @@ async function scrapeImagesAndVideos(influencer, userId) {
   const innerText = await page.evaluate((el) => el.innerText, timeStamp);
 
   if (!hoursAgo.includes(innerText))
-    return console.warn("the ", influencer, " did not post story today");
+  return console.warn("the ", influencer, " did not post story today");
 
   // Scrape the initial page
   const initialMedia = await extractMediaUrls();
@@ -241,7 +241,7 @@ app.get("/fetch", async (req, res) => {
         $match: {
           snapDate: {
             $gte: new Date("2024-11-01T00:00:00Z"), // Start date (inclusive)
-            $lte: new Date("2024-11-30T23:59:59Z"), // End date (inclusive)
+            $lte: new Date("2024-12-30T23:59:59Z"), // End date (inclusive)
           },
         },
       },
@@ -457,12 +457,12 @@ async function optional(mashaahiir) {
 
 // optional(["m_3z3z", "n24n1", "wwee41"]);
 // optional(["m_3z3z", "baba-slam"]);
-// optional(["m_3z3z"]);
+optional(["m_3z3z"]);
 // optional(["m_3z3z","mvq.11","aomar1"]);
 // optional(["sultan_nq"]);
 // optional(["n24n1"]);
 // optional(["fares_alqubbi","baba-slam"]);
-// optional(["baba-slam","m_3z3z"]);
+// optional(["baba-slam", "m_3z3z"]);
 // optional(["baba-slam"]);
 // optional(["m_3z3z","baba-slam","fares_alqubbi"]);
 // optional(["m_3z3z","me_05514"]);
@@ -480,6 +480,7 @@ async function optional(mashaahiir) {
 // optional(["ccc.7c", "me_05514"]);
 // optional(["aaja.2","ie.hadi"]);
 // optional(["m_3z3z","wwee41"]);
+// optional(["lv11j", "m_3z3z"]);
 
 // cron.schedule("30 10 * * *", async () => {
 //   console.log("started cron job....");

@@ -109,7 +109,7 @@ async function scrapeImagesAndVideos(influencer, userId) {
   await page.setDefaultNavigationTimeout(0);
 
   const buttonClick = await page.$(
-    ".Header_clickableProfilePictureWrapper__20VTv"
+    ".RenderProfilePicture_profilePictureWrapper__cwpB3"
   );
 
   console.log("founded .0.0.- ", buttonClick);
@@ -135,8 +135,8 @@ async function scrapeImagesAndVideos(influencer, userId) {
   const timeStamp = await page.$(".TimestampCard_textColor__3w3uC");
   const innerText = await page.evaluate((el) => el.innerText, timeStamp);
 
-  if (!hoursAgo.includes(innerText))
-  return console.warn("the ", influencer, " did not post story today");
+  //if (!hoursAgo.includes(innerText))
+  //return console.warn("the ", influencer, " did not post story today");
 
   // Scrape the initial page
   const initialMedia = await extractMediaUrls();
@@ -241,7 +241,7 @@ app.get("/fetch", async (req, res) => {
         $match: {
           snapDate: {
             $gte: new Date("2024-11-01T00:00:00Z"), // Start date (inclusive)
-            $lte: new Date("2024-12-30T23:59:59Z"), // End date (inclusive)
+            $lte: new Date("2025-02-30T23:59:59Z"), // End date (inclusive)
           },
         },
       },
@@ -457,11 +457,14 @@ async function optional(mashaahiir) {
 
 // optional(["m_3z3z", "n24n1", "wwee41"]);
 // optional(["m_3z3z", "baba-slam"]);
-optional(["m_3z3z"]);
+// optional(["m_3z3z"]);
+// optional(["abood"]);
+// optional(["fares_alqubbi"]);
 // optional(["m_3z3z","mvq.11","aomar1"]);
 // optional(["sultan_nq"]);
 // optional(["n24n1"]);
 // optional(["fares_alqubbi","baba-slam"]);
+// optional(["fares_alqubbi", "m_3z3z"]);
 // optional(["baba-slam", "m_3z3z"]);
 // optional(["baba-slam"]);
 // optional(["m_3z3z","baba-slam","fares_alqubbi"]);
@@ -473,12 +476,14 @@ optional(["m_3z3z"]);
 // optional(["al7ejab","abood"]);
 // optional(["m_3z3z", "ccc.7c"]);
 // optional(["m_3z3z", "tyzaryki"]);
+// optional(["tyzaryki"]);
 // optional(["m_3z3z","baba-slam", "tyzaryki"]);
 // optional(["m_3z3z", "ccc.7c","abood"]);
 // optional(["m_3z3z", "baba-slam", "wwee41"]);
 // optional(["m_3z3z", "aaja.2", "n24n1"]);
 // optional(["ccc.7c", "me_05514"]);
 // optional(["aaja.2","ie.hadi"]);
+// optional(["aaja.2"]);
 // optional(["m_3z3z","wwee41"]);
 // optional(["lv11j", "m_3z3z"]);
 

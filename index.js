@@ -169,7 +169,7 @@ async function scrapeImagesAndVideos(influencer, userId) {
     await Snap.create({
       influencerUsername: influencer,
       user: new mongoose.Types.ObjectId(userId),
-      urls: allMedia,
+      urls: allMedia
     });
     console.warn(influencer + " stories was succeffuly scraped");
   } catch (e) {
@@ -460,8 +460,10 @@ async function optional(mashaahiir) {
 // optional(["m_3z3z"]);
 // optional(["abood"]);
 // optional(["fares_alqubbi"]);
+// optional(["fw6_z7"]);
 // optional(["m_3z3z","mvq.11","aomar1"]);
 // optional(["sultan_nq"]);
+// optional(["i3bood_sh"]);
 // optional(["n24n1"]);
 // optional(["fares_alqubbi","baba-slam"]);
 // optional(["fares_alqubbi", "m_3z3z"]);
@@ -477,15 +479,26 @@ async function optional(mashaahiir) {
 // optional(["m_3z3z", "ccc.7c"]);
 // optional(["m_3z3z", "tyzaryki"]);
 // optional(["tyzaryki"]);
+// optional(["wwee41"]); 
+// optional(["me_05514"]); 
+// optional(["aomar1"]);
 // optional(["m_3z3z","baba-slam", "tyzaryki"]);
 // optional(["m_3z3z", "ccc.7c","abood"]);
 // optional(["m_3z3z", "baba-slam", "wwee41"]);
 // optional(["m_3z3z", "aaja.2", "n24n1"]);
-// optional(["ccc.7c", "me_05514"]);
-// optional(["aaja.2","ie.hadi"]);
+// optional([ "ccc.7c"]);
+// optional(["me_05514"]);
+// optional(["aaja.2", "ie.hadi"]);
+// optional(["ie.hadi"]);
 // optional(["aaja.2"]);
 // optional(["m_3z3z","wwee41"]);
 // optional(["lv11j", "m_3z3z"]);
+// optional(["aboody_8x"]);
+// optional(["f_asoo"]);
+// optional(["na7vxx"]);
+// optional(["a18ne"]);
+// optional(["sometimesfaisal"]);
+// optional(["cviioul"]);
 
 // cron.schedule("30 10 * * *", async () => {
 //   console.log("started cron job....");

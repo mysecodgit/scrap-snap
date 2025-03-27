@@ -104,15 +104,18 @@ async function scrapeImagesAndVideos(influencer, userId) {
   const page = await browser.newPage();
   await page.goto(`https://www.snapchat.com/add/${influencer}`);
   // await page.goto(
-  //   `https://www.snapchat.com/add/m_3z3z/yhY3KH6mTzubWM4zeo1g9gAAgaXh6aWN1d291AY6K-b_WAY6K-b1UAAAAAA`
+  //   `https://www.snapchat.com/add/abood/zbtaYpS-QqqC2296166IdQAAgdW1yY2NzYm5xAY9URJsXAY9URJmLAAAAAA`
   // );
   await page.setDefaultNavigationTimeout(0);
-  const button = await page.$(
+
+  const buttonClick = await page.$(
     ".RenderProfilePicture_profilePictureWrapper__cwpB3"
   );
-  await button.click();
 
-  // Function to extract image and video URLs from the page
+  console.log("founded .0.0.- ", buttonClick);
+
+  await buttonClick.click();
+
   async function extractMediaUrls() {
     // Extract image URLs
     const imageUrls = await page.$$eval(
@@ -133,7 +136,7 @@ async function scrapeImagesAndVideos(influencer, userId) {
   const innerText = await page.evaluate((el) => el.innerText, timeStamp);
 
   //if (!hoursAgo.includes(innerText))
-    //return console.log("the ", influencer, " did not post story today");
+  //return console.warn("the ", influencer, " did not post story today");
 
   // Scrape the initial page
   const initialMedia = await extractMediaUrls();
@@ -146,13 +149,13 @@ async function scrapeImagesAndVideos(influencer, userId) {
     const button = await page.$('div[aria-label="Navigate right"]');
     if (button) {
       await button.click();
-      console.log(i + "button is clicked");
       const newMedia = await extractMediaUrls();
       console.log(
-        "video ",
-        newMedia.videoUrls.length,
-        " image ",
-        newMedia.imageUrls.length
+        i +
+          " button is clicked img : " +
+          newMedia.imageUrls.length +
+          " vids : " +
+          newMedia.videoUrls.length
       );
       allMedia = [...allMedia, ...newMedia.imageUrls, ...newMedia.videoUrls];
       i++;
@@ -168,9 +171,9 @@ async function scrapeImagesAndVideos(influencer, userId) {
       user: new mongoose.Types.ObjectId(userId),
       urls: allMedia,
     });
-    console.log("Succeffuly scraped");
+    console.warn(influencer + " stories was succeffuly scraped");
   } catch (e) {
-    console.log("Error => ", e);
+    console.error("Error => ", e);
   } finally {
     await browser.close();
   }
@@ -235,6 +238,14 @@ app.get("/fetch", async (req, res) => {
   try {
     const result = await Snap.aggregate([
       {
+        $match: {
+          snapDate: {
+            $gte: new Date("2024-11-01T00:00:00Z"), // Start date (inclusive)
+            $lte: new Date("2025-05-30T23:59:59Z"), // End date (inclusive)
+          },
+        },
+      },
+      {
         $sort: { influencerUsername: 1, snapDate: -1 }, // Sort by influencer name (ascending) and snapDate (descending)
       },
       {
@@ -286,15 +297,19 @@ app.get("/scrape", async (req, res) => {
 });
 
 app.get("/get-urls/:influencer/:date", async (req, res) => {
-  const { influencer, date } = req.params;
   const result = await Snap.aggregate([
     {
       $match: {
-        influencerUsername: influencer,
+        influencerUsername: req.params.influencer,
         snapDate: {
-          $gte: new Date(`${date}T00:00:00.000Z`),
-          $lte: new Date(`${date}T23:59:59.999Z`),
+          $gte: new Date(`${req.params.date}T00:00:00.000+00:00`),
+          $lte: new Date(`${req.params.date}T23:59:59.999+00:00`),
         },
+      },
+    },
+    {
+      $sort: {
+        "urls.index": 1,
       },
     },
     {
@@ -328,14 +343,59 @@ app.get("/get-urls/:influencer/:date", async (req, res) => {
   res.send(result[0]?.videoUrls || []);
 });
 
+app.get("/get-all-urls/:influencer/:date", async (req, res) => {
+  const result = await Snap.aggregate([
+    {
+      $match: {
+        influencerUsername: req.params.influencer,
+        snapDate: {
+          $gte: new Date(`${req.params.date}T00:00:00.000+00:00`),
+          $lte: new Date(`${req.params.date}T23:59:59.999+00:00`),
+        },
+      },
+    },
+    // {
+    //   $project: {
+    //     videoUrls: {
+    //       $map: {
+    //         input: {
+    //           $filter: {
+    //             input: "$urls",
+    //             cond: { $eq: ["$$this.type", "video"] },
+    //           },
+    //         },
+    //         as: "url",
+    //         in: "$$url.src",
+    //       },
+    //     },
+    //   },
+    // },
+  ]);
+
+  // const videoUrls = result[0].videoUrls;
+
+  // fs.writeFile("myurls.txt", videoUrls.join("\n"), (err) => {
+  //   if (err) {
+  //     console.error("Error writing file:", err);
+  //   } else {
+  //     console.log(`Video URLs have been written to`);
+  //   }
+  // });
+
+  res.send(result[0]?.urls || []);
+});
+
 // scrapeImagesAndVideos("ccc.7c", "65e374ed6baf5965b7ec3054");
-// scrapeImagesAndVideos("i3bz1", "65e374ed6baf5965b7ec3054");
+// scrapeImagesAndVideos("fares_alqubbi", "65e374ed6baf5965b7ec3054");
+// scrapeImagesAndVideos("abood", "65e374ed6baf5965b7ec3054");
 // scrapeImagesAndVideos("al7ejab", "65e374ed6baf5965b7ec3054");
-// scrapeImagesAndVideos("me_05514", "65e374ed6baf5965b7ec3054");
 // scrapeImagesAndVideos("m_3z3z", "65e374ed6baf5965b7ec3054");
 // scrapeImagesAndVideos("baba-slam", "65e374ed6baf5965b7ec3054");
+// scrapeImagesAndVideos("n24n1", "65e374ed6baf5965b7ec3054");
+// scrapeImagesAndVideos("zezo_ziba1d1", "65e374ed6baf5965b7ec3054");
+// scrapeImagesAndVideos("aaja.2", "65e374ed6baf5965b7ec3054");
 
-// cron.schedule("10 16 * * *", async () => {
+// cron.schedule("06 16 * * *", async () => {
 //   console.log("started cron job....");
 //   try {
 //     const users = await User.find({});
@@ -353,26 +413,90 @@ app.get("/get-urls/:influencer/:date", async (req, res) => {
 //   }
 // });
 
-Promise.all([
-  // scrapeImagesAndVideos("m_3z3z", "65e374ed6baf5965b7ec3054"),
-  // scrapeImagesAndVideos("yoof.0", "65e374ed6baf5965b7ec3054"),
-  // scrapeImagesAndVideos("ccc.7c", "65e374ed6baf5965b7ec3054"),
-  // scrapeImagesAndVideos("tyzaryki", "65e374ed6baf5965b7ec3054"),
-  // scrapeImagesAndVideos("lv11j", "65e374ed6baf5965b7ec3054"),
-  // scrapeImagesAndVideos("me_05514", "65e374ed6baf5965b7ec3054"),
-  // scrapeImagesAndVideos("n24n1", "65e374ed6baf5965b7ec3054"),
-  // scrapeImagesAndVideos("baba-slam", "65e374ed6baf5965b7ec3054"),
-  // scrapeImagesAndVideos("fares_alqubbi", "65e374ed6baf5965b7ec3054"),
-  // scrapeImagesAndVideos("abood", "65e374ed6baf5965b7ec3054"),
-  // scrapeImagesAndVideos("wwee41", "65e374ed6baf5965b7ec3054"),
-  // scrapeImagesAndVideos("a.pabl07", "65e374ed6baf5965b7ec3054"),
-  // scrapeImagesAndVideos("ie.hadi", "65e374ed6baf5965b7ec3054"),
-  // scrapeImagesAndVideos("aaja.2", "65e374ed6baf5965b7ec3054"),
-  // scrapeImagesAndVideos("fw6_z7", "65e374ed6baf5965b7ec3054"),
-  // scrapeImagesAndVideos("na7vxx", "65e374ed6baf5965b7ec3054"),
-  // scrapeImagesAndVideos("f_asoo", "65e374ed6baf5965b7ec3054"),
-  // scrapeImagesAndVideos("fsmand1", "65e374ed6baf5965b7ec3054"),
-  // scrapeImagesAndVideos("fsmand1", "65e374ed6baf5965b7ec3054"),
-])
-  .then((result) => console.log("Scraped all"))
-  .catch((err) => console.log(err));
+async function optional(mashaahiir) {
+  console.log("started others....");
+  try {
+    const scrapeTasks = [];
+
+    // scrapeTasks.push(
+    //   scrapeImagesAndVideos("abood", "65e374ed6baf5965b7ec3054")
+    // );
+    // scrapeTasks.push(
+    //   scrapeImagesAndVideos("wwee41", "65e374ed6baf5965b7ec3054")
+    // );
+    // scrapeTasks.push(
+    //   scrapeImagesAndVideos("nktv39", "65e374ed6baf5965b7ec3054")
+    // );
+    // scrapeTasks.push(scrapeImagesAndVideos("abood", "65e374ed6baf5965b7ec3054"))
+    // scrapeTasks.push(scrapeImagesAndVideos("wwee41", "65e374ed6baf5965b7ec3054"))
+    // scrapeTasks.push(
+    //   scrapeImagesAndVideos("me_05514", "65e374ed6baf5965b7ec3054")
+    // );
+
+    mashaahiir.forEach((mashoor) => {
+      scrapeTasks.push(
+        scrapeImagesAndVideos(mashoor, "65e374ed6baf5965b7ec3054")
+      );
+    });
+
+    // scrapeTasks.push(
+    //   scrapeImagesAndVideos("m_3z3z", "65e374ed6baf5965b7ec3054")
+    // );
+    // scrapeTasks.push(
+    //   scrapeImagesAndVideos("n24n1", "65e374ed6baf5965b7ec3054")
+    // );
+    // scrapeTasks.push(
+    //   scrapeImagesAndVideos("ccc.7c", "65e374ed6baf5965b7ec3054")
+    // );
+
+    await Promise.all(scrapeTasks);
+  } catch (error) {
+    console.error("Error :", error);
+  }
+}
+
+// optional(["m_3z3z", "n24n1", "wwee41"]);
+// optional(["m_3z3z", "baba-slam"]);
+// optional(["m_3z3z"]);
+optional(["abood"]);
+// optional(["fares_alqubbi"]);
+// optional(["m_3z3z","mvq.11","aomar1"]);
+// optional(["sultan_nq"]);
+optional(["n24n1"]);
+// optional(["fares_alqubbi","baba-slam"]);
+// optional(["fares_alqubbi", "m_3z3z"]);
+// optional(["baba-slam", "m_3z3z"]);
+// optional(["baba-slam"]);
+// optional(["zo666h"]);
+// optional(["m_3z3z","baba-slam","fares_alqubbi"]);
+// optional(["m_3z3z","me_05514"]);
+// optional(["m_3z3z", "baba-slam"]);
+// optional(["m_3z3z", "baba-slam", "abood"]);
+// optional(["al7ejab","wwee41"]);
+// optional(["m_3z3z","abood"]);
+// optional(["al7ejab","abood"]);
+// optional(["al7ejab"]);
+// optional(["i3bood_sh"]);
+// optional(["imej2"]);
+// optional(["ccc.7c"]);
+// optional(["m_3z3z", "ccc.7c"]);
+// optional(["m_3z3z", "tyzaryki"]);
+// optional(["tyzaryki"]);
+// optional(["m_3z3z","baba-slam", "tyzaryki"]);
+// optional(["m_3z3z", "ccc.7c","abood"]);
+// optional(["m_3z3z", "baba-slam", "wwee41"]);
+// optional(["m_3z3z", "aaja.2", "n24n1"]);
+// optional(["ccc.7c", "me_05514"]);
+// optional(["aaja.2","ie.hadi"]);
+// optional(["aaja.2"]);
+// optional(["isss_20"]);
+// optional(["cviioul"]);
+// optional(["m_3z3z","wwee41"]);
+// optional(["lv11j", "m_3z3z"]);
+// optional(["f_asoo"]);
+// optional(["na7vxx"]);
+
+// cron.schedule("30 10 * * *", async () => {
+//   console.log("started cron job....");
+//   optional(["m_3z3z", "wwee41", "me_05514"]);
+// });

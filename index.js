@@ -135,19 +135,33 @@ async function scrapeImagesAndVideos(influencer, userId) {
   const timeStamp = await page.$(".TimestampCard_textColor__3w3uC");
   const innerText = await page.evaluate((el) => el.innerText, timeStamp);
 
-  //if (!hoursAgo.includes(innerText))
-  //return console.warn("the ", influencer, " did not post story today");
+  console.log("TIME :: ",innerText)
+  // if (!hoursAgo.includes(innerText))
+  // return console.warn("the ", influencer, " did not post story today");
 
   // Scrape the initial page
-  const initialMedia = await extractMediaUrls();
-  let allMedia = [...initialMedia.imageUrls, ...initialMedia.videoUrls];
+  // const initialMedia = await extractMediaUrls();
+  // let allMedia = [...initialMedia.imageUrls, ...initialMedia.videoUrls];
+  let allMedia = [];
 
   // Click the button to continue to the next items
   let hasNext = true;
   let i = 1;
   while (hasNext) {
     const button = await page.$('div[aria-label="Navigate right"]');
+    
+    const timeStamp = await page.$(".TimestampCard_textColor__3w3uC");
+     const innerText = await page.evaluate((el) => el.innerText, timeStamp);
+
     if (button) {
+      if (!hoursAgo.includes(innerText)) {
+        await button.click();
+        console.log(i + ` Button clicked - Condition met [${innerText}]. Skipping this iteration.`);
+        i++;
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Optional delay
+        continue
+      } 
+
       await button.click();
       const newMedia = await extractMediaUrls();
       console.log(
@@ -464,11 +478,17 @@ async function optional(mashaahiir) {
 // optional(["m_3z3z","mvq.11","aomar1"]);
 // optional(["sultan_nq"]);
 // optional(["i3bood_sh"]);
+// optional(["imej2"]);
+
+// optional(["x3booshz"]);
+// optional(["zo666h"]);
+
 // optional(["n24n1"]);
 // optional(["fares_alqubbi","baba-slam"]);
 // optional(["fares_alqubbi", "m_3z3z"]);
 // optional(["baba-slam", "m_3z3z"]);
 // optional(["baba-slam"]);
+// optional(["rko-1x"]);
 // optional(["m_3z3z","baba-slam","fares_alqubbi"]);
 // optional(["m_3z3z","me_05514"]);
 // optional(["m_3z3z", "baba-slam"]);
@@ -499,6 +519,10 @@ async function optional(mashaahiir) {
 // optional(["a18ne"]);
 // optional(["sometimesfaisal"]);
 // optional(["cviioul"]);
+// optional(["yoof.0"]);
+// optional(["brandonrowland"]);
+// optional(["fsmand1"]);
+// optional(["m6in0"]);
 
 // cron.schedule("30 10 * * *", async () => {
 //   console.log("started cron job....");

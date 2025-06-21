@@ -254,8 +254,8 @@ app.get("/fetch", async (req, res) => {
       {
         $match: {
           snapDate: {
-            $gte: new Date("2024-11-01T00:00:00Z"), // Start date (inclusive)
-            $lte: new Date("2025-02-30T23:59:59Z"), // End date (inclusive)
+            $gte: new Date("2025-03-01T00:00:00Z"), // Start date (inclusive)
+            $lte: new Date("2025-06-30T23:59:59Z"), // End date (inclusive)
           },
         },
       },

@@ -4,6 +4,7 @@ const app = express();
 const fs = require("fs");
 const cors = require("cors");
 
+app.use(express.json());
 app.use(cors());
 
 const { default: mongoose } = require("mongoose");
@@ -135,7 +136,7 @@ async function scrapeImagesAndVideos(influencer, userId) {
   const timeStamp = await page.$(".TimestampCard_textColor__3w3uC");
   const innerText = await page.evaluate((el) => el.innerText, timeStamp);
 
-  console.log("TIME :: ",innerText)
+  console.log("TIME :: ", innerText)
   // if (!hoursAgo.includes(innerText))
   // return console.warn("the ", influencer, " did not post story today");
 
@@ -149,9 +150,9 @@ async function scrapeImagesAndVideos(influencer, userId) {
   let i = 1;
   while (hasNext) {
     const button = await page.$('div[aria-label="Navigate right"]');
-    
+
     const timeStamp = await page.$(".TimestampCard_textColor__3w3uC");
-     const innerText = await page.evaluate((el) => el.innerText, timeStamp);
+    const innerText = await page.evaluate((el) => el.innerText, timeStamp);
 
     if (button) {
       if (!hoursAgo.includes(innerText)) {
@@ -160,16 +161,16 @@ async function scrapeImagesAndVideos(influencer, userId) {
         i++;
         await new Promise(resolve => setTimeout(resolve, 2000)); // Optional delay
         continue
-      } 
+      }
 
       await button.click();
       const newMedia = await extractMediaUrls();
       console.log(
         i +
-          " button is clicked img : " +
-          newMedia.imageUrls.length +
-          " vids : " +
-          newMedia.videoUrls.length
+        " button is clicked img : " +
+        newMedia.imageUrls.length +
+        " vids : " +
+        newMedia.videoUrls.length
       );
       allMedia = [...allMedia, ...newMedia.imageUrls, ...newMedia.videoUrls];
       i++;
@@ -248,16 +249,50 @@ app.get("/add-user", async (req, res) => {
 //   }
 // });
 
-app.get("/fetch", async (req, res) => {
+app.post("/fetch", async (req, res) => {
+  let { fromDate, toDate, influencers,isImportantOnly } = req.body
+
+
+  const now = new Date();
+
+  // First day of the month
+  const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  // Last day of the month
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+  // Helper to format as YYYY-MM-DD
+  const formatDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // months are 0-based
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  if (!fromDate) fromDate = formatDate(firstDay)
+  if (!toDate) toDate = formatDate(lastDay)
+
+  let matchCondition = {
+       
+          influencerUsername: { $in: influencers },
+          snapDate: {
+            $gte: new Date(`${fromDate}T00:00:00Z`), // Start date (inclusive)
+            $lte: new Date(`${toDate}T23:59:59Z`), // End date (inclusive)
+          },
+       
+      }
+      
+  if(isImportantOnly){
+    matchCondition["isImportant"] = true
+  }
+
+  console.log("Match Condition > ",matchCondition)
+
+
   try {
     const result = await Snap.aggregate([
       {
-        $match: {
-          snapDate: {
-            $gte: new Date("2025-03-01T00:00:00Z"), // Start date (inclusive)
-            $lte: new Date("2025-06-30T23:59:59Z"), // End date (inclusive)
-          },
-        },
+        $match:matchCondition
       },
       {
         $sort: { influencerUsername: 1, snapDate: -1 }, // Sort by influencer name (ascending) and snapDate (descending)
@@ -472,12 +507,12 @@ async function optional(mashaahiir) {
 // optional(["m_3z3z", "n24n1", "wwee41"]);
 // optional(["m_3z3z", "baba-slam"]);
 // optional(["m_3z3z"]);
-optional(["abood"]);
+// optional(["abood"]);
 // optional(["fares_alqubbi"]);
 // optional(["fw6_z7"]);
 // optional(["m_3z3z","mvq.11","aomar1"]);
 // optional(["sultan_nq"]);
-optional(["n24n1"]);
+// optional(["n24n1"]);
 // optional(["i3bood_sh"]);
 // optional(["imej2"]);
 
@@ -505,8 +540,8 @@ optional(["n24n1"]);
 // optional(["m_3z3z", "ccc.7c"]);
 // optional(["m_3z3z", "tyzaryki"]);
 // optional(["tyzaryki"]);
-// optional(["wwee41"]); 
-// optional(["me_05514"]); 
+// optional(["wwee41"]);
+// optional(["me_05514"]);
 // optional(["aomar1"]);
 // optional(["m_3z3z","baba-slam", "tyzaryki"]);
 // optional(["m_3z3z", "ccc.7c","abood"]);

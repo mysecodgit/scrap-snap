@@ -113,7 +113,7 @@ async function scrapeImagesAndVideos(influencer, userId) {
     ".RenderProfilePicture_profilePictureWrapper__cwpB3"
   );
 
-  console.log("founded .0.0.- ", buttonClick);
+  console.log("founded influencer - ", influencer);
 
   await buttonClick.click();
 
@@ -133,10 +133,10 @@ async function scrapeImagesAndVideos(influencer, userId) {
     return { imageUrls, videoUrls };
   }
 
-  const timeStamp = await page.$(".TimestampCard_textColor__3w3uC");
-  const innerText = await page.evaluate((el) => el.innerText, timeStamp);
+  // const timeStamp = await page.$(".TimestampCard_textColor__3w3uC");
+  // const innerText = await page.evaluate((el) => el.innerText, timeStamp);
 
-  console.log("TIME :: ", innerText)
+  // console.log("TIME :: ", innerText)
   // if (!hoursAgo.includes(innerText))
   // return console.warn("the ", influencer, " did not post story today");
 
@@ -144,6 +144,8 @@ async function scrapeImagesAndVideos(influencer, userId) {
   // const initialMedia = await extractMediaUrls();
   // let allMedia = [...initialMedia.imageUrls, ...initialMedia.videoUrls];
   let allMedia = [];
+
+  // console.log("all MEdia ",allMedia)
 
   // Click the button to continue to the next items
   let hasNext = true;
@@ -154,31 +156,38 @@ async function scrapeImagesAndVideos(influencer, userId) {
     const timeStamp = await page.$(".TimestampCard_textColor__3w3uC");
     const innerText = await page.evaluate((el) => el.innerText, timeStamp);
 
-    if (button) {
-      if (!hoursAgo.includes(innerText)) {
-        await button.click();
-        console.log(i + ` Button clicked - Condition met [${innerText}]. Skipping this iteration.`);
-        i++;
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Optional delay
-        continue
-      }
 
+    if (!hoursAgo.includes(innerText)) {
       await button.click();
-      const newMedia = await extractMediaUrls();
-      console.log(
-        i +
-        " button is clicked img : " +
-        newMedia.imageUrls.length +
-        " vids : " +
-        newMedia.videoUrls.length
-      );
-      allMedia = [...allMedia, ...newMedia.imageUrls, ...newMedia.videoUrls];
+      console.log(i + ` Button clicked - Condition met [${innerText}]. Skipping this iteration.`);
       i++;
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // Add a 2-second delay
-    } else {
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Optional delay
+      continue
+    }
+
+
+
+
+    const newMedia = await extractMediaUrls();
+   
+    console.log(
+      i +
+      " button is clicked img : " +
+      newMedia.imageUrls.length +
+      " vids : " +
+      newMedia.videoUrls.length
+    );
+    allMedia = [...allMedia, ...newMedia.imageUrls, ...newMedia.videoUrls];
+    i++;
+    await new Promise((resolve) => setTimeout(resolve, 2000)); // Add a 2-second delay
+    if (button) {
+      await button.click();
+    }else{
       hasNext = false;
     }
   }
+
+
 
   try {
     await Snap.create({
@@ -188,7 +197,7 @@ async function scrapeImagesAndVideos(influencer, userId) {
     });
     console.warn(influencer + " stories was succeffuly scraped");
   } catch (e) {
-    console.error("Error => ", e);
+    console.error("Error => ", influencer, e);
   } finally {
     await browser.close();
   }
@@ -250,7 +259,7 @@ app.get("/add-user", async (req, res) => {
 // });
 
 app.post("/fetch", async (req, res) => {
-  let { fromDate, toDate, influencers,isImportantOnly } = req.body
+  let { fromDate, toDate, influencers, isImportantOnly } = req.body
 
 
   const now = new Date();
@@ -273,26 +282,26 @@ app.post("/fetch", async (req, res) => {
   if (!toDate) toDate = formatDate(lastDay)
 
   let matchCondition = {
-       
-          influencerUsername: { $in: influencers },
-          snapDate: {
-            $gte: new Date(`${fromDate}T00:00:00Z`), // Start date (inclusive)
-            $lte: new Date(`${toDate}T23:59:59Z`), // End date (inclusive)
-          },
-       
-      }
-      
-  if(isImportantOnly){
+
+    influencerUsername: { $in: influencers },
+    snapDate: {
+      $gte: new Date(`${fromDate}T00:00:00Z`), // Start date (inclusive)
+      $lte: new Date(`${toDate}T23:59:59Z`), // End date (inclusive)
+    },
+
+  }
+
+  if (isImportantOnly) {
     matchCondition["isImportant"] = true
   }
 
-  console.log("Match Condition > ",matchCondition)
+  console.log("Match Condition > ", matchCondition)
 
 
   try {
     const result = await Snap.aggregate([
       {
-        $match:matchCondition
+        $match: matchCondition
       },
       {
         $sort: { influencerUsername: 1, snapDate: -1 }, // Sort by influencer name (ascending) and snapDate (descending)
@@ -506,18 +515,18 @@ async function optional(mashaahiir) {
 
 // optional(["m_3z3z", "n24n1", "wwee41"]);
 // optional(["m_3z3z", "baba-slam"]);
-// optional(["m_3z3z"]);
-// optional(["abood"]);
+optional(["m_3z3z"]);
+optional(["abood"]);
 // optional(["fares_alqubbi"]);
 // optional(["fw6_z7"]);
 // optional(["m_3z3z","mvq.11","aomar1"]);
 // optional(["sultan_nq"]);
 // optional(["n24n1"]);
-// optional(["i3bood_sh"]);
+optional(["i3bood_sh"]);
 // optional(["imej2"]);
 
 // optional(["x3booshz"]);
-// optional(["zo666h"]);
+optional(["zo666h"]);
 
 // optional(["n24n1"]);
 // optional(["fares_alqubbi","baba-slam"]);

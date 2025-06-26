@@ -10,6 +10,8 @@ const snapSchema = new mongoose.Schema({
       src: { type: String },
     },
   ],
+  isImportant: { type: Boolean, default: false },
+  description: { type: String, default: "" }
 });
 
 const Snap = mongoose.model("Snap", snapSchema);
